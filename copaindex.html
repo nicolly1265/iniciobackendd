@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Coleção de Figurinhas - Copa</title>
+  <style>
+    :root{
+      --bg1:#071428;
+      --bg2:#0b3b3b;
+      --card: rgba(255,255,255,0.03);
+      --accent:#ffb74d;
+      --accent-2:#ff8a65;
+      --success:#66bb6a;
+      --text:#eef2f6;
+      --muted: rgba(238,242,246,0.7);
+      --glass: rgba(255,255,255,0.04);
+      --glass-2: rgba(255,255,255,0.02);
+      --shadow: 0 10px 30px rgba(2,6,23,0.6);
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:var(--text);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+
+    /* Screen base */
+    .screen {
+      position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:20px;
+      transition:opacity .45s ease, transform .45s ease; opacity:0; pointer-events:none; backdrop-filter: blur(6px) saturate(120%);
+    }
+    .screen.active{opacity:1; pointer-events:auto; transform:none}
+
+    .card {
+      width:100%; max-width:1100px; border-radius:14px; display:flex; gap:20px; overflow:hidden;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      box-shadow: var(--shadow); padding:18px;
+    }
+
+    /* Left visual */
+    .panel {
+      width:36%; min-width:260px; padding:18px; border-radius:12px; display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      text-align:center;
+    }
+    .panel h2{margin:0;font-size:20px}
+    .panel p{margin:0;color:var(--muted);font-size:14px}
+
+    /* Right content */
+    .content {flex:1; padding:6px 4px}
+    .title-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .title-row h1{margin:0;font-size:20px}
+    .small{font-size:13px;color:var(--muted)}
+
+    /* Inputs and buttons */
+    .form input, .form select, .form button {
+      width:100%; padding:12px 14px; margin:8px 0; border-radius:10px; border:1px solid rgba(255,255,255,0.04);
+      background:transparent; color:var(--text); outline:none;
+    }
+    .btn {
+      display:inline-block; padding:12px 14px; border-radius:10px; border:none; cursor:pointer;
+      background:linear-gradient(90deg,var(--accent),var(--accent-2)); color:#081018; font-weight:700;
+      box-shadow: 0 6px 18px rgba(255,138,101,0.12);
+    }
+    .btn.ghost { background:transparent; color:var(--accent); border:1px solid rgba(255,255,255,0.06) }
+    .btn.secondary { background:linear-gradient(90deg,#4caf50,#43a047); color:white }
+
+    /* Navigation grid */
+    .nav-grid { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px }
+    .nav-item { flex:1; min-width:120px; padding:12px; border-radius:10px; background:var(--glass-2); text-align:center; cursor:pointer; border:1px solid rgba(255,255,255,0.03) }
+    .nav-item:hover{transform:translateY(-4px); transition:transform .18s ease}
+
+    /* Figurinha grid */
+    .figurinha-grid {
+      display:grid; grid-template-columns: repeat(auto-fill,minmax(120px,1fr)); gap:12px; margin-top:12px;
+    }
+    .figurinha {
+      background:linear-gradient(180deg,#fff,#f3f3f3); color:#111; height:150px; border-radius:10px; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:6px; padding:10px; cursor:grab; user-select:none; border:2px solid rgba(0,0,0,0.06);
+      box-shadow: 0 8px 20px rgba(2,6,23,0.12);
+    }
+    .figurinha img{width:72px;height:72px;object-fit:cover;border-radius:8px}
+    .figurinha .tag{font-weight:700;font-size:14px}
+
+    /* Album spaces */
+    .album-grid { display:grid; grid-template-columns: repeat(4,1fr); gap:12px; margin-top:12px }
+    .album-space {
+      height:150px; border-radius:10px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border:2px dashed rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; color:var(--muted);
+      transition: border-color .12s ease, transform .12s ease;
+    }
+    .album-space.filled { border-style:solid; background:transparent; color:var(--text) }
+    .album-space.over { border-color: var(--accent); transform:scale(1.02) }
+
+    /* small helpers */
+    .row { display:flex; gap:8px; align-items:center }
+    .muted { color:var(--muted) }
+
+    /* modal */
+    .modal { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(2,6,23,0.6); opacity:0; pointer-events:none; transition:opacity .18s ease }
+    .modal.active{opacity:1; pointer-events:auto}
+    .modal .box { width:100%; max-width:520px; background:var(--card); padding:18px; border-radius:12px }
+
+    /* responsive */
+    @media (max-width:980px){
+      .card{flex-direction:column}
+      .panel{width:100%}
+      .album-grid{grid-template-columns: repeat(2,1fr)}
+      .figurinha-grid{grid-template-columns: repeat(auto-fill,minmax(140px,1fr))}
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Screen -->
+  <div id="loginScreen" class="screen active">
+    <div class="card" role="application" aria-label="Tela de login">
+      <div class="panel">
+        <h2>Álbum da Copa</h2>
+        <p>Guarde, troque e compre figurinhas com um visual limpo e interativo.</p>
+        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" style="border-radius:12px">
+          <rect width="24" height="24" rx="4" fill="url(#g)"/>
+          <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#ffb74d"/><stop offset="1" stop-color="#ff8a65"/></linearGradient></defs>
+        </svg>
+      </div>
+
+      <div class="content">
+        <div class="title-row">
+          <h1>Login</h1>
+          <div class="small">Sem conta? <button class="btn ghost" onclick="navigate('cadastro')">Cadastre-se</button></div>
+        </div>
+
+        <div class="form">
+          <input id="loginUser" placeholder="Usuário" />
+          <input id="loginPass" type="password" placeholder="Senha" />
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn" onclick="doLogin()">Entrar</button>
+            <button class="btn ghost" onclick="demoLogin()">Entrar como Demo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cadastro Screen -->
+  <div id="cadastroScreen" class="screen">
+    <div class="card" role="application" aria-label="Tela de cadastro">
+      <div class="panel">
+        <h2>Crie sua conta</h2>
+        <p>Rápido e seguro. Comece sua coleção agora.</p>
+      </div>
+
+      <div class="content">
+        <div class="title-row">
+          <h1>Cadastro</h1>
+          <div class="small">Já tem conta? <button class="btn ghost" onclick="navigate('login')">Entrar</button></div>
+        </div>
+
+        <div class="form">
+          <input id="cadNome" placeholder="Nome / Apelido / Usuário" />
+          <input id="cadIdade" type="number" placeholder="Idade" />
+          <input id="cadEmail" type="email" placeholder="Email" />
+          <input id="cadSenha" type="password" placeholder="Crie uma senha" />
+          <input id="cadSenha2" type="password" placeholder="Confirme a senha" />
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn" onclick="doCadastro()">Enter</button>
+            <button class="btn ghost" onclick="navigate('login')">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Screen -->
+  <div id="appScreen" class="screen">
+    <div class="card" role="main" aria-label="Aplicação principal">
+      <div class="panel">
+        <h2 id="userWelcome">Olá</h2>
+        <p id="userTag" class="small">Sua coleção te espera</p>
+
+        <div style="margin-top:12px;background:linear-gradient(90deg,var(--accent),var(--accent-2));padding:10px;border-radius:10px;color:#081018;font-weight:700">
+          Saldo: <span id="saldoDisplay">0</span> moedas
+        </div>
+
+        <div class="nav-grid" style="width:100%;margin-top:14px">
+          <div class="nav-item" onclick="navigate('colecao')">Coleção</div>
+          <div class="nav-item" onclick="navigate('trocas')">Trocas</div>
+          <div class="nav-item" onclick="navigate('vendas')">Vendas</div>
+          <div class="nav-item" onclick="navigate('compras')">Compras</div>
+          <div class="nav-item" onclick="navigate('album')">Álbum</div>
+          <div class="nav-item" onclick="logout()">Sair</div>
+        </div>
+      </div>
+
+      <div class="content" id="appContent">
+        <!-- Conteúdo dinâmico -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="modal" aria-hidden="true">
+    <div class="box" role="dialog" aria-modal="true">
+      <div id="modalBody"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button class="btn ghost" onclick="closeModal()">Fechar</button>
+        <button id="modalConfirm" class="btn" onclick="confirmModal()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ---------- Estado e persistência ---------- */
+    const STORAGE_KEY = 'album_copa_v2';
+    let state = {
+      user: null,
+      saldo: 100,
+      colecao: [],
+      album: [],
+      marketplace: []
+    };
+
+    function initState(){
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if(saved){
+        try{ state = JSON.parse(saved); }catch(e){ console.warn('parse error',e); seedDemo(); }
+      } else seedDemo();
+    }
+    function seedDemo(){
+      state.colecao = [
+        {id:1,name:'Neymar Jr',img:'',price:30},
+        {id:2,name:'Messi',img:'',price:35},
+        {id:3,name:'Ronaldo',img:'',price:40},
+        {id:4,name:'Mbappé',img:'',price:45}
+      ];
+      state.album = Array(12).fill(null);
+      state.marketplace = [
+        {id:101,name:'Fig Rara',img:'',price:50}
+      ];
+      state.saldo = 100;
+      saveState();
+    }
+    function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)) }
+
+    /* ---------- Navegação ---------- */
+    function showScreen(id){
+      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function navigate(section){
+      if(section === 'login'){ showScreen('loginScreen'); return }
+      if(section === 'cadastro'){ showScreen('cadastroScreen'); return }
+      if(section === 'colecao'){ renderColecao(); showScreen('appScreen'); return }
+      if(section === 'trocas'){ renderTrocas(); showScreen('appScreen'); return }
+      if(section === 'vendas'){ renderVendas(); showScreen('appScreen'); return }
+      if(section === 'compras'){ renderCompras(); showScreen('appScreen'); return }
+      if(section === 'album'){ renderAlbum(); showScreen('appScreen'); return }
+      if(section === 'inicio'){ renderInicio(); showScreen('appScreen'); return }
+    }
+
+    function renderInicio(){
+      document.getElementById('userWelcome').textContent = state.user ? `Olá, ${state.user}` : 'Olá';
+      document.getElementById('userTag').textContent = 'Bem-vindo ao seu álbum';
+      document.getElementById('saldoDisplay').textContent = state.saldo;
+      const content = document.getElementById('appContent');
+      content.innerHTML = `
+        <div class="title-row"><h1>Início</h1><div class="small">Visão geral</div></div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:220px;background:var(--glass);padding:12px;border-radius:10px">
+            <h3 style="margin:0">Coleção</h3>
+            <p class="small">Figurinhas: <strong>${state.colecao.length}</strong></p>
+          </div>
+          <div style="flex:1;min-width:220px;background:var(--glass);padding:12px;border-radius:10px">
+            <h3 style="margin:0">Álbum</h3>
+            <p class="small">Preenchidos: <strong>${state.album.filter(Boolean).length}/${state.album.length}</strong></p>
+          </div>
+          <div style="flex:1;min-width:220px;background:var(--glass);padding:12px;border-radius:10px">
+            <h3 style="margin:0">Marketplace</h3>
+            <p class="small">Itens: <strong>${state.marketplace.length}</strong></p>
+          </div>
+        </div>
+      `;
+    }
+
+    /* ---------- Login / Cadastro ---------- */
+    function doLogin(){
+      const user = document.getElementById('loginUser').value.trim() || 'Usuário';
+      state.user = user;
+      saveState();
+      renderInicio();
+      showScreen('appScreen');
+    }
+    function demoLogin(){ state.user = 'Demo'; saveState(); renderInicio(); showScreen('appScreen') }
+
+    function doCadastro(){
+      const nome = document.getElementById('cadNome').value.trim();
+      const email = document.getElementById('cadEmail').value.trim();
+      const s1 = document.getElementById('cadSenha').value;
+      const s2 = document.getElementById('cadSenha2').value;
+      if(!nome || !email || !s1) return alert('Preencha os campos obrigatórios');
+      if(s1 !== s2) return alert('As senhas não coincidem');
+      state.user = nome;
+      state.colecao = [];
+      state.album = Array(12).fill(null);
+      state.marketplace = [];
+      state.saldo = 100;
+      saveState();
+      renderInicio();
+      showScreen('appScreen');
+    }
+
+    function logout(){
+      state.user = null;
+      saveState();
+      showScreen('loginScreen');
+    }
+
+    /* ---------- Coleção ---------- */
+    function renderColecao(){
+      document.getElementById('userWelcome').textContent = state.user ? `Olá, ${state.user}` : 'Olá';
+      document.getElementById('saldoDisplay').textContent = state.saldo;
+      const content = document.getElementById('appContent');
+      content.innerHTML = `
+        <div class="title-row"><h1>Minha Coleção</h1><div class="small">Arraste para o álbum ou clique para ações</div></div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="flex:1">
+            <div style="display:flex;gap:8px">
+              <input id="newFigName" placeholder="Nome da figurinha" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--text)" />
+              <button class="btn" onclick="addFigFromInput()">Adicionar</button>
+            </div>
+            <div id="colecaoGrid" class="figurinha-grid" style="margin-top:12px"></div>
+          </div>
+
+          <div style="width:260px">
+            <div style="background:var(--glass);padding:12px;border-radius:10px">
+              <h3 style="margin:0">Ações rápidas</h3>
+              <p class="small">Clique em uma figurinha para opções</p>
+              <button class="btn secondary" style="width:100%;margin-top:8px" onclick="openMarketplace()">Ir para Marketplace</button>
+              <button class="btn ghost" style="width:100%;margin-top:8px" onclick="navigate('album')">Ir para Álbum</button>
+            </div>
+          </div>
+        </div>
+      `;
+      renderColecaoGrid();
+    }
+
+    function renderColecaoGrid(){
+      const grid = document.getElementById('colecaoGrid');
+      grid.innerHTML = '';
+      state.colecao.forEach(item=>{
+        const el = document.createElement('div');
+        el.className = 'figurinha';
+        el.draggable = true;
+        el.dataset.id = item.id;
+        el.innerHTML = `<div style="font-size:12px;color:var(--muted)">#${item.id}</div><div class="tag">${item.name}</div><div style="font-size:12px;color:var(--muted)">${item.price} moedas</div>`;
+        el.addEventListener('dragstart', onDragStart);
+        el.addEventListener('click', ()=>openFigOptions(item.id));
+        grid.appendChild(el);
+      });
+    }
+
+    function addFigFromInput(){
+      const name = document.getElementById('newFigName').value.trim();
+      if(!name) return alert('Digite o nome da figurinha');
+      const id = Date.now();
+      state.colecao.push({id,name,img:'',price:Math.floor(Math.random()*40)+10});
+      saveState();
+      renderColecaoGrid();
+      document.getElementById('newFigName').value = '';
+    }
+
+    /* ---------- Drag and Drop para Álbum ---------- */
+    let draggedId = null;
+    function onDragStart(e){
+      draggedId = Number(e.currentTarget.dataset.id);
+      e.dataTransfer.setData('text/plain', draggedId);
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function renderAlbum(){
+      document.getElementById('userWelcome').textContent = state.user ? `Olá, ${state.user}` : 'Olá';
+      document.getElementById('saldoDisplay').textContent = state.saldo;
+      const content = document.getElementById('appContent');
+      content.innerHTML = `
+        <div class="title-row"><h1>Álbum da Copa</h1><div class="small">Arraste figurinhas para preencher os espaços</div></div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="flex:1">
+            <div class="album-grid" id="albumGrid"></div>
+            <div style="margin-top:12px" class="small">Dica: arraste da sua coleção para o álbum. Clique em uma figurinha no álbum para remover.</div>
+          </div>
+          <div style="width:260px">
+            <div style="background:var(--glass);padding:12px;border-radius:10px">
+              <h3 style="margin:0">Sua coleção</h3>
+              <div id="miniColecao" class="figurinha-grid" style="margin-top:8px"></div>
+            </div>
+          </div>
+        </div>
+      `;
+      const albumGrid = document.getElementById('albumGrid');
+      albumGrid.innerHTML = '';
+      state.album.forEach((slot, idx)=>{
+        const div = document.createElement('div');
+        div.className = 'album-space' + (slot ? ' filled' : '');
+        div.dataset.index = idx;
+        div.innerHTML = slot ? `<div style="text-align:center"><div style="font-weight:700">${slot.name}</div><div style="font-size:12px;color:var(--muted)">${slot.price} moedas</div></div>` : `Espaço ${idx+1}`;
+        div.addEventListener('dragover', e=>{ e.preventDefault(); div.classList.add('over'); });
+        div.addEventListener('dragleave', e=>{ div.classList.remove('over'); });
+        div.addEventListener('drop', e=>{
+          e.preventDefault(); div.classList.remove('over');
+          const id = Number(e.dataTransfer.getData('text/plain') || draggedId);
+          placeInAlbum(id, idx);
+        });
+        div.addEventListener('click', ()=>{
+          if(state.album[idx]) {
+            if(confirm('Remover figurinha do álbum?')) {
+              state.colecao.push(state.album[idx]);
+              state.album[idx] = null;
+              saveState();
+              renderAlbum();
+            }
+          }
+        });
+        albumGrid.appendChild(div);
+      });
+
+      const mini = document.getElementById('miniColecao');
+      mini.innerHTML = '';
+      state.colecao.forEach(item=>{
+        const el = document.createElement('div');
+        el.className = 'figurinha';
+        el.draggable = true;
+        el.dataset.id = item.id;
+        el.innerHTML = `<div style="font-size:12px;color:var(--muted)">#${item.id}</div><div class="tag">${item.name}</div>`;
+        el.addEventListener('dragstart', onDragStart);
+        el.addEventListener('click', ()=>openFigOptions(item.id));
+        mini.appendChild(el);
+      });
+    }
+
+    function placeInAlbum(figId, slotIndex){
+      const idx = state.colecao.findIndex(f=>f.id === figId);
+      if(idx === -1) return alert('Figurinha não encontrada na coleção');
+      if(state.album[slotIndex]){
+        if(!confirm('Este espaço já está preenchido. Substituir?')) return;
+        state.colecao.push(state.album[slotIndex]);
+      }
+      state.album[slotIndex] = state.colecao.splice(idx,1)[0];
+      saveState();
+      renderAlbum();
+    }
+
+    /* ---------- Vendas e Compras ---------- */
+    function renderVendas(){
+      document.getElementById('userWelcome').textContent = state.user ? `Olá, ${state.user}` : 'Olá';
+      document.getElementById('saldoDisplay').textContent = state.saldo;
+      const content = document.getElementById('appContent');
+      content.innerHTML = `
+        <div class="title-row"><h1>Vender Figurinhas</h1><div class="small">Coloque figurinhas à venda e ganhe moedas</div></div>
+        <div style="display:flex;gap:12px">
+          <div style="flex:1">
+            <div class="small">Sua coleção</div>
+            <div id="sellGrid" class="figurinha-grid" style="margin-top:8px"></div>
+          </div>
+          <div style="width:260px">
+            <div style="background:var(--glass);padding:12px;border-radius:10px">
+              <h3 style="margin:0">Marketplace</h3>
+              <div id="marketList" style="margin-top:8px"></div>
+            </div>
+          </div>
+        </div>
+      `;
+      const sellGrid = document.getElementById('sellGrid');
+      sellGrid.innerHTML = '';
+      state.colecao.forEach(item=>{
+        const el = document.createElement('div');
+        el.className = 'figurinha';
+        el.innerHTML = `<div style="font-size:12px;color:var(--muted)">#${item.id}</div><div class="tag">${item.name}</div><div style="font-size:12px;color:var(--muted)">${item.price} moedas</div>`;
+        const sellBtn = document.createElement('button');
+        sellBtn.className = 'btn ghost';
+        sellBtn.style.marginTop = '8px';
+        sellBtn.textContent = 'Vender';
+        sellBtn.onclick = ()=>sellFigurinha(item.id);
+        el.appendChild(sellBtn);
+        sellGrid.appendChild(el);
+      });
+      renderMarketList();
+    }
+
+    function sellFigurinha(id){
+      const idx = state.colecao.findIndex(f=>f.id===id);
+      if(idx===-1) return alert('Figurinha não encontrada');
+      const item = state.colecao.splice(idx,1)[0];
+      state.marketplace.push(item);
+      state.saldo += Math.round(item.price * 0.8);
+      saveState();
+      renderVendas();
+      alert(`Figurinha colocada à venda. Você recebeu ${Math.round(item.price*0.8)} moedas.`);
+    }
+
+    function renderMarketList(){
+      const el = document.getElementById('marketList');
+      el.innerHTML = '';
+      state.marketplace.forEach(item=>{
+        const div = document.createElement('div');
+        div.style.display='flex';div.style.justifyContent='space-between';div.style.alignItems='center';div.style.padding='8px 0';
+        div.innerHTML = `<div><strong>${item.name}</strong><div class="small">#${item.id} • ${item.price} moedas</div></div>`;
+        const buyBtn = document.createElement('button');
+        buyBtn.className='btn';
+        buyBtn.textContent='Comprar';
+        buyBtn.onclick = ()=>buyFromMarket(item.id);
+        div.appendChild(buyBtn);
+        el.appendChild(div);
+      });
+    }
+
+    function buyFromMarket(id){
+      const idx = state.marketplace.findIndex(m=>m.id===id);
+      if(idx===-1) return alert('Item não disponível');
+      const item = state.marketplace[idx];
+      if(state.saldo < item.price) return alert('Saldo insuficiente');
+      state.saldo -= item.price;
+      state.colecao.push(item);
+      state.marketplace.splice(idx,1);
+      saveState();
+      renderVendas();
+      alert('Compra realizada com sucesso!');
+    }
+
+    function openMarketplace(){
+      renderCompras();
+      navigate('compras');
+    }
+
+    function renderCompras(){
+      document.getElementById('userWelcome').textContent = state.user ? `Olá, ${state.user}` : 'Olá';
+      document.getElementById('saldoDisplay').textContent = state.saldo;
+      const content = document.getElementById('appContent');
+      content.innerHTML = `
+        <div class="title-row"><h1>Comprar Figurinhas</h1><div class="small">Compre no marketplace ou abra pacotes</div></div>
+        <div style="display:flex;gap:12px">
+          <div style="flex:1">
+            <div id="marketGrid" class="figurinha-grid"></div>
+            <div style="margin-top:12px">
+              <button class="btn" onclick="buyPack()">Comprar Pacote (20 moedas)</button>
+            </div>
+          </div>
+          <div style="width:260px">
+            <div style="background:var(--glass);padding:12px;border-radius:10px">
+              <h3 style="margin:0">Seu saldo</h3>
+              <p class="small">${state.saldo} moedas</p>
+              <button class="btn ghost" onclick="navigate('vendas')">Vender figurinhas</button>
+            </div>
+          </div>
+        </div>
+      `;
+      const grid = document.getElementById('marketGrid');
+      grid.innerHTML = '';
+      state.marketplace.forEach(item=>{
+        const el = document.createElement('div');
+        el.className='figurinha';
+        el.innerHTML = `<div style="font-size:12px;color:var(--muted)">#${item.id}</div><div class="tag">${item.name}</div><div style="font-size:12px;color:var(--muted)">${item.price} moedas</div>`;
+        const buyBtn = document.createElement('button');
+        buyBtn.className='btn';
+        buyBtn.style.marginTop='8px';
+        buyBtn.textContent='Comprar';
+        buyBtn.onclick = ()=>buyFromMarket(item.id);
+        el.appendChild(buyBtn);
+        grid.appendChild(el);
+      });
+    }
+
+    function buyPack(){
+      if(state.saldo < 20) return alert('Saldo insuficiente para comprar pacote');
+      state.saldo -= 20;
+      for(let i=0;i<3;i++){
+        const id = Date.now() + Math.floor(Math.random()*1000) + i;
+        state.colecao.push({id,name:`Fig Surpresa ${Math.floor(Math.random()*100)}`,img:'',price:Math.floor(Math.random()*40)+10});
+      }
+      saveState();
+      renderCompras();
+      alert('Pacote aberto! 3 figurinhas adicionadas à sua coleção.');
+    }
+
+    /* ---------- Trocas simples ---------- */
+    function renderTrocas(){
+      document.getElementById('userWelcome').textContent = state.user ? `Olá, ${state.user}` : 'Olá';
+      document.getElementById('saldoDisplay').textContent = state.saldo;
+      const content = document.getElementById('appContent');
+      content.innerHTML = `
+        <div class="title-row"><h1>Trocas</h1><div class="small">Selecione duas figurinhas para trocar entre si</div></div>
+        <div style="display:flex;gap:12px">
+          <div style="flex:1">
+            <div class="small">Sua coleção</div>
+            <div id="tradeGrid" class="figurinha-grid" style="margin-top:8px"></div>
+            <div style="margin-top:12px" class="small">Clique para selecionar. Depois clique em "Trocar selecionadas".</div>
+            <div style="margin-top:8px">
+              <button class="btn" onclick="executeTrade()">Trocar selecionadas</button>
+            </div>
+          </div>
+          <div style="width:260px">
+            <div style="background:var(--glass);padding:12px;border-radius:10px">
+              <h3 style="margin:0">Selecionadas</h3>
+              <div id="selectedList" style="margin-top:8px" class="small">Nenhuma</div>
+            </div>
+          </div>
+        </div>
+      `;
+      renderTradeGrid();
+    }
+
+    let tradeSelected = [];
+    function renderTradeGrid(){
+      const grid = document.getElementById('tradeGrid');
+      grid.innerHTML = '';
+      state.colecao.forEach(item=>{
+        const el = document.createElement('div');
+        el.className='figurinha';
+        el.innerHTML = `<div style="font-size:12px;color:var(--muted)">#${item.id}</div><div class="tag">${item.name}</div>`;
+        el.addEventListener('click', ()=>{
+          toggleSelectTrade(item.id, el);
+        });
+        grid.appendChild(el);
+      });
+    }
+    function toggleSelectTrade(id, el){
+      const idx = tradeSelected.indexOf(id);
+      if(idx === -1){
+        if(tradeSelected.length >= 2) return alert('Máximo 2 figurinhas para trocar');
+        tradeSelected.push(id);
+        el.style.outline = '3px solid rgba(255,183,77,0.6)';
+      } else {
+        tradeSelected.splice(idx,1);
+        el.style.outline = 'none';
+      }
+      updateSelectedList();
+    }
+    function updateSelectedList(){
+      const el = document.getElementById('selectedList');
+      if(!el) return;
+      if(tradeSelected.length === 0) el.textContent = 'Nenhuma';
+      else el.innerHTML = tradeSelected.map(id=>{
+        const f = state.colecao.find(x=>x.id===id);
+        return `<div>${f ? f.name : '#'+id}</div>`;
+      }).join('');
+    }
+    function executeTrade(){
+      if(tradeSelected.length !== 2) return alert('Selecione exatamente 2 figurinhas para trocar');
+      const i1 = state.colecao.findIndex(f=>f.id===tradeSelected[0]);
+      const i2 = state.colecao.findIndex(f=>f.id===tradeSelected[1]);
+      if(i1===-1 || i2===-1) return alert('Erro na seleção');
+      const tmp = state.colecao[i1];
+      state.colecao[i1] = state.colecao[i2];
+      state.colecao[i2] = tmp;
+      tradeSelected = [];
+      saveState();
+      renderTrocas();
+      alert('Troca simulada entre as figurinhas selecionadas.');
+    }
+
+    /* ---------- Fig options modal ---------- */
+    function openFigOptions(id){
+      const item = state.colecao.find(f=>f.id===id);
+      if(!item) return;
+      const modalBody = document.getElementById('modalBody');
+      modalBody.innerHTML = `
+        <h3 style="margin:0">${item.name}</h3>
+        <p class="small">#${item.id} • Valor sugerido ${item.price} moedas</p>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn" onclick="sellFigurinha(${item.id}); closeModal();">Vender</button>
+          <button class="btn ghost" onclick="addToMarketplace(${item.id}); closeModal();">Colocar no Marketplace</button>
+          <button class="btn secondary" onclick="placeQuick(${item.id}); closeModal();">Colocar no Álbum</button>
+        </div>
+      `;
+      document.getElementById('modal').classList.add('active');
+    }
+
+    function closeModal(){ document.getElementById('modal').classList.remove('active') }
+    function confirmModal(){ /* placeholder */ }
+
+    function addToMarketplace(id){
+      const idx = state.colecao.findIndex(f=>f.id===id);
+      if(idx===-1) return alert('Não encontrado');
+      const item = state.colecao.splice(idx,1)[0];
+      state.marketplace.push(item);
+      saveState();
+      renderColecao();
+      alert('Figurinha colocada no marketplace.');
+    }
+
+    function placeQuick(id){
+      const idx = state.colecao.findIndex(f=>f.id===id);
+      if(idx===-1) return alert('Não encontrado');
+      const slot = state.album.findIndex(s=>!s);
+      if(slot === -1) return alert('Álbum cheio. Remova uma figurinha primeiro.');
+      state.album[slot] = state.colecao.splice(idx,1)[0];
+      saveState();
+      renderAlbum();
+    }
+
+    /* ---------- Inicialização ---------- */
+    initState();
+    if(state.user) { renderInicio(); showScreen('appScreen') } else { showScreen('loginScreen') }
+
+    // Expor funções para handlers inline
+    window.navigate = navigate;
+    window.doLogin = doLogin;
+    window.doCadastro = doCadastro;
+    window.demoLogin = demoLogin;
+    window.addFigFromInput = addFigFromInput;
+    window.sellFigurinha = sellFigurinha;
+    window.buyFromMarket = buyFromMarket;
+    window.buyPack = buyPack;
+    window.openMarketplace = openMarketplace;
+    window.openFigOptions = openFigOptions;
+    window.closeModal = closeModal;
+    window.logout = logout;
+  </script>
+</body>
+</html>
