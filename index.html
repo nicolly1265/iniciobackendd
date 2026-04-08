@@ -1,130 +1,17 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Portfólio Nicolly</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Pac-Man Original Clone</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>Meus Projetos</h1>
-    <p>Explore os sites que criei em sala de aula!</p>
-  </header>
-  <main>
-    <section id="projetos">
-      <!-- Cada projeto será um card -->
-      <!-- <div class="card" onclick="abrirProjeto('https//seusite1.com')"> -->
-        
-        <div class="card" onclick="abrirProjeto('https://github.com/nicolly1265/TodosOsSites/blob/main/filtrar.js')">
-        <h2>Projeto 1</h2>
-        <p>Filtrar.js</p>
-      </div>
-
-      <div class="card" onclick="abrirProjeto('https://github.com/nicolly1265/TodosOsSites/blob/main/Media_Se.js')">
-        <h2>Projeto 2</h2>
-        <p>media.js.</p>
-      </div>
-
-      <div class="card" onclick="abrirProjeto('https://github.com/nicolly1265/TodosOsSites/blob/main/Brake_continue.js')">
-        <h2>Projeto 3</h2>
-        <p>Brake_continue.js</p>
-      </div>
-
-      <div class="card" onclick="abrirProjeto('https://github.com/nicolly1265/TodosOsSites/blob/main/areatriangulo.js')">
-        <h2>Projeto 4</h2>
-        <p>areatriangulo.js</p>
-      </div>
-
-      <div class="card" onclick="abrirProjeto('https://github.com/nicolly1265/iniciobackendd/blob/main/array.js')">
-        <h2>Projeto 5</h2>
-        <p>array.js</p>
-      </div>
-
-      <div class="card" onclick="abrirProjeto('https://gamma.app/docs/As-Maiores-Startups-do-Mundo-em-2026-5c4m4l3m55caytl')">
-        <h2>Projeto 6</h2>
-        <p>melhores sturtups</p>
-      </div>
-
-      <div class="card" onclick="abrirProjeto('https://github.com/nicolly1265/iniciobackendd/blob/main/carro.js')">
-        <h2>Projeto 7</h2>
-        <p>carro</p>
-      </div>
-
-      <div class="card" onclick="abrirProjeto('https://github.com/nicolly1265/iniciobackendd/blob/main/copaindex.html')">
-        <h2>Projeto 8</h2>
-        <p>Descrição breve do projeto.</p>
-      </div>
-
-      <div class="card" onclick="abrirProjeto('https://github.com/nicolly1265/iniciobackendd/blob/main/selectionSort.js')">
-        <h2>Projeto 9</h2>
-        <p>selectionSort.</p>
-      </div>
-
-      <div class="card" onclick="abrirProjeto('https://seusite2.com')">
-        <h2>Projeto 10</h2>
-        <p>Descrição breve do projeto.</p>
-      </div>
-      <div class="card" onclick="abrirProjeto('https://seusite2.com')">
-        <h2>Projeto 11</h2>
-        <p>Descrição breve do projeto.</p>
-      </div>
-      <div class="card" onclick="abrirProjeto('https://seusite2.com')">
-        <h2>Projeto 12</h2>
-        <p>Descrição breve do projeto.</p>
-      </div>
-      <div class="card" onclick="abrirProjeto('https://seusite2.com')">
-        <h2>Projeto 13</h2>
-        <p>Descrição breve do projeto.</p>
-      </div>
-      <div class="card" onclick="abrirProjeto('https://seusite2.com')">
-        <h2>Projeto 14</h2>
-        <p>Descrição breve do projeto.</p>
-      </div>
-
-      <div class="card" onclick="abrirProjeto('https://seusite2.com')">
-        <h2>Projeto 15</h2>
-        <p>Descrição breve do projeto.</p>
-      </div>
-
-      <div class="card" onclick="abrirProjeto('https://seusite2.com')">
-        <h2>Projeto 16</h2>
-        <p>Descrição breve do projeto.</p>
-      </div>
-
-      <div class="card" onclick="abrirProjeto('https://seusite2.com')">
-        <h2>Projeto 17</h2>
-        <p>Descrição breve do projeto.</p>
-      </div>
-
-      <div class="card" onclick="abrirProjeto('https://seusite2.com')">
-        <h2>Projeto 18</h2>
-        <p>Descrição breve do projeto.</p>
-      </div>
-
-      <div class="card" onclick="abrirProjeto('https://seusite2.com')">
-        <h2>Projeto 19</h2>
-        <p>Descrição breve do projeto.</p>
-      </div>
-
-      <div class="card" onclick="abrirProjeto('https://seusite2.com')">
-        <h2>Projeto 20</h2>
-        <p>Descrição breve do projeto.</p>
-      </div>
-
-      <div class="card" onclick="abrirProjeto('https://seusite2.com')">
-        <h2>Projeto 21</h2>
-        <p>Descrição breve do projeto.</p>
-      </div>
-
-      <!-- Adicione mais cards conforme necessário -->
-    </section>
-  </main>
-
-  <footer>
-    <p>© 2026 Nicolly - Todos os direitos reservados</p>
-  </footer>
-  
-  <script src="script.js"></script>
+    <div id="game-container">
+        <div id="score">Score: 0</div>
+        <canvas id="gameCanvas"></canvas>
+    </div>
+    <audio id="wakaSound" src="waka.mp3"></audio>
+    <audio id="deathSound" src="death.mp3"></audio>
+    <script src="script.js"></script>
 </body>
 </html>
